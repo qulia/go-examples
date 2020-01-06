@@ -1,0 +1,11 @@
+# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/qulia/go-qulia v1.0.0
+github.com/qulia/go-qulia/lib
+github.com/qulia/go-qulia/lib/hash
+github.com/qulia/go-qulia/lib/queue
+github.com/qulia/go-qulia/lib/set
+# github.com/sirupsen/logrus v1.4.2
+github.com/sirupsen/logrus
+# golang.org/x/sys v0.0.0-20190422165155-953cdadca894
+golang.org/x/sys/unix
