@@ -2,6 +2,7 @@ package webcrawler
 
 import (
 	"github.com/qulia/go-examples/webcrawler/siteparser"
+	"github.com/qulia/go-qulia/concurrency/access"
 	"github.com/qulia/go-qulia/lib"
 	"github.com/qulia/go-qulia/lib/queue"
 	"github.com/qulia/go-qulia/lib/set"
@@ -20,23 +21,25 @@ type UrlData struct {
 type WebCrawler struct {
 	numberOfWorkers int
 	siteParser      siteparser.Interface
-	jobsQueue       chan *queue.Queue
+	jobsQueue       *access.Unique
 }
 
 func NewWebCrawler(numWorkers int, siteParser siteparser.Interface) *WebCrawler {
 	wc := WebCrawler{
 		numberOfWorkers: numWorkers,
 		siteParser:      siteParser,
-		jobsQueue:       make(chan *queue.Queue, 1),
+		jobsQueue:       access.NewUnique(queue.NewQueue()),
 	}
 
+	wc.jobsQueue.Release()
 	return &wc
 }
 
 // Visits BFS manner starting at the startUrl and posts the urls
 func (wc *WebCrawler) Visit(startUrl string, urls chan<- UrlData) {
+	q := wc.jobsQueue.Acquire().(*queue.Queue)
+	defer wc.jobsQueue.Release()
 
-	q := queue.NewQueue()
 	urlSet := set.NewSet(lib.HashKeyFunc)
 	startUrlData := UrlData{
 		Url:       startUrl,
@@ -51,18 +54,18 @@ func (wc *WebCrawler) Visit(startUrl string, urls chan<- UrlData) {
 	for i := 0; i < wc.numberOfWorkers; i++ {
 		go wc.urlWorker(i, urls)
 	}
-	wc.jobsQueue <- q
 }
 
 // Pick a url from the job queue, starts a worker to parse, puts this url to output
 func (wc *WebCrawler) urlWorker(id int, urls chan<- UrlData) {
 	log.Infof("At worker %d", id)
-	for q := range wc.jobsQueue {
+	for {
+		q := wc.jobsQueue.Acquire()
 		if q == nil {
-			wc.jobsQueue <- nil
+			wc.jobsQueue.Release()
 			break
 		}
-		currentUrl := q.Dequeue()
+		currentUrl := q.(*queue.Queue).Dequeue()
 		if currentUrl != nil {
 			log.Infof("Processing at worker id:%d urlData:%s", id, currentUrl)
 			go wc.parserWorker(currentUrl.(UrlData))
@@ -72,7 +75,7 @@ func (wc *WebCrawler) urlWorker(id int, urls chan<- UrlData) {
 			}()
 		}
 
-		wc.jobsQueue <- q
+		wc.jobsQueue.Release()
 	}
 	log.Infof("Exiting worker %d", id)
 }
@@ -81,24 +84,23 @@ func (wc *WebCrawler) urlWorker(id int, urls chan<- UrlData) {
 func (wc *WebCrawler) parserWorker(urlData UrlData) {
 	newUrls := wc.siteParser.Parse(urlData.Url)
 	log.Infof("Parsed url:%s result:%s", urlData, newUrls)
-	q := <-wc.jobsQueue
+	q := wc.jobsQueue.Acquire()
+	defer wc.jobsQueue.Release()
 	if q == nil {
 		return
 	}
 	for _, newUrl := range newUrls {
-		allUrls := q.Metadata[allUrls].(set.Interface)
+		allUrls := q.(*queue.Queue).Metadata[allUrls].(set.Interface)
 		if !allUrls.Contains(newUrl) {
 			allUrls.Add(newUrl)
-			q.Enqueue(UrlData{
+			q.(*queue.Queue).Enqueue(UrlData{
 				Url:       newUrl,
 				SourceUrl: urlData.Url,
 			})
 		}
 	}
-
-	wc.jobsQueue <- q
 }
 
 func (wc *WebCrawler) Stop() {
-	wc.jobsQueue <- nil
+	wc.jobsQueue.Done()
 }
