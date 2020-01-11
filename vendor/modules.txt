@@ -4,7 +4,7 @@ github.com/davecgh/go-spew/spew
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/qulia/go-qulia v1.0.1
+# github.com/qulia/go-qulia v1.0.3
 github.com/qulia/go-qulia/concurrency/access
 github.com/qulia/go-qulia/lib
 github.com/qulia/go-qulia/lib/hash
