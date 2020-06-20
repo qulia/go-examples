@@ -7,4 +7,5 @@ require (
 	github.com/qulia/go-qulia v1.0.3
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
+	golang.org/x/tools v0.0.0-20200619210111-0f592d2728bb
 )
