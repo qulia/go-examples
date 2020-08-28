@@ -1,21 +1,26 @@
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+# github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/qulia/go-qulia v1.0.3
+# github.com/qulia/go-log v0.0.0-20200329160631-27094ffa4de9
+github.com/qulia/go-log/log
+# github.com/qulia/go-qulia v1.0.5-0.20200828223534-e5fcb5a1670c
 github.com/qulia/go-qulia/concurrency/access
 github.com/qulia/go-qulia/lib
 github.com/qulia/go-qulia/lib/hash
+github.com/qulia/go-qulia/lib/heap
 github.com/qulia/go-qulia/lib/queue
 github.com/qulia/go-qulia/lib/set
+github.com/qulia/go-qulia/lib/tree
 github.com/qulia/go-qulia/utils
-# github.com/sirupsen/logrus v1.4.2
+# github.com/sirupsen/logrus v1.6.0
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.4.0
+# github.com/stretchr/testify v1.6.1
 github.com/stretchr/testify/assert
-# golang.org/x/sys v0.0.0-20190422165155-953cdadca894
+github.com/stretchr/testify/require
+# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 golang.org/x/sys/unix
-# gopkg.in/yaml.v2 v2.2.2
-gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3
