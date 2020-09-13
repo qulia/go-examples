@@ -1,12 +1,14 @@
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/gorilla/mux v1.8.0
+github.com/gorilla/mux
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/qulia/go-log v0.0.0-20200329160631-27094ffa4de9
 github.com/qulia/go-log/log
-# github.com/qulia/go-qulia v1.0.5-0.20200828223534-e5fcb5a1670c
+# github.com/qulia/go-qulia v1.0.5-0.20200913054407-d6228d4b1cb1
 github.com/qulia/go-qulia/concurrency/access
 github.com/qulia/go-qulia/lib
 github.com/qulia/go-qulia/lib/hash
