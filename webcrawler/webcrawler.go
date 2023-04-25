@@ -1,16 +1,12 @@
 package webcrawler
 
 import (
+	"sync"
+
 	"github.com/qulia/go-examples/webcrawler/siteparser"
-	"github.com/qulia/go-qulia/concurrency/access"
-	"github.com/qulia/go-qulia/lib"
-	"github.com/qulia/go-qulia/lib/queue"
+	"github.com/qulia/go-qulia/concurrency/unique"
 	"github.com/qulia/go-qulia/lib/set"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	allUrls = "allUrls"
 )
 
 type UrlData struct {
@@ -20,87 +16,84 @@ type UrlData struct {
 
 type WebCrawler struct {
 	numberOfWorkers int
+	urlCount        int
 	siteParser      siteparser.Interface
-	jobsQueue       *access.Unique
+	jobsQueue       chan *UrlData
+	urlsAccessor    *unique.Unique[set.Set[string]]
 }
 
-func NewWebCrawler(numWorkers int, siteParser siteparser.Interface) *WebCrawler {
+func NewWebCrawler(numWorkers, urlCount int, siteParser siteparser.Interface) *WebCrawler {
 	wc := WebCrawler{
 		numberOfWorkers: numWorkers,
+		urlCount:        urlCount,
 		siteParser:      siteParser,
-		jobsQueue:       access.NewUnique(queue.NewQueue()),
+		jobsQueue:       make(chan *UrlData, 10),
+		urlsAccessor:    unique.NewUnique(set.NewSet[string]()),
 	}
-
-	wc.jobsQueue.Release()
 	return &wc
 }
 
 // Visits BFS manner starting at the startUrl and posts the urls
-func (wc *WebCrawler) Visit(startUrl string, urls chan<- UrlData) {
-	q := wc.jobsQueue.Acquire().(*queue.Queue)
-	defer wc.jobsQueue.Release()
+func (wc *WebCrawler) Visit(startUrl string) set.Set[string] {
+	urls, ok := wc.urlsAccessor.Acquire()
+	if !ok {
+		return urls
+	}
 
-	urlSet := set.NewSet(lib.HashKeyFunc)
 	startUrlData := UrlData{
 		Url:       startUrl,
 		SourceUrl: "",
 	}
-	urlSet.Add(startUrlData.Url)
-	q.Metadata[allUrls] = urlSet
-	q.Enqueue(startUrlData)
+	urls.Add(startUrlData.Url)
+	wc.jobsQueue <- &startUrlData
+	wc.urlsAccessor.Release()
 
+	urlCounter := &sync.WaitGroup{}
+	urlCounter.Add(wc.urlCount)
 	// Start workers
 	log.Infof("Starting %d workers...", wc.numberOfWorkers)
 	for i := 0; i < wc.numberOfWorkers; i++ {
-		go wc.urlWorker(i, urls)
+		go wc.urlWorker(i, urlCounter)
 	}
+
+	urlCounter.Wait()
+	urls, _ = wc.urlsAccessor.Acquire()
+	wc.urlsAccessor.Release()
+	return urls
 }
 
 // Pick a url from the job queue, starts a worker to parse, puts this url to output
-func (wc *WebCrawler) urlWorker(id int, urls chan<- UrlData) {
+func (wc *WebCrawler) urlWorker(id int, urlCounter *sync.WaitGroup) {
 	log.Infof("At worker %d", id)
+	defer log.Infof("Exiting worker %d", id)
 	for {
-		q := wc.jobsQueue.Acquire()
-		if q == nil {
-			wc.jobsQueue.Release()
-			break
-		}
-		currentUrl := q.(*queue.Queue).Dequeue()
-		if currentUrl != nil {
-			log.Infof("Processing at worker id:%d urlData:%s", id, currentUrl)
-			go wc.parserWorker(currentUrl.(UrlData))
-
-			go func() {
-				urls <- currentUrl.(UrlData)
-			}()
-		}
-
-		wc.jobsQueue.Release()
+		curUrlData := <-wc.jobsQueue
+		log.Infof("Received at worker id:%d urlData:%s", id, curUrlData)
+		go wc.parserWorker(curUrlData, urlCounter)
 	}
-	log.Infof("Exiting worker %d", id)
 }
 
 // Picks a url to parse, puts new urls in the job queue, if not processed already
-func (wc *WebCrawler) parserWorker(urlData UrlData) {
+func (wc *WebCrawler) parserWorker(urlData *UrlData, urlCounter *sync.WaitGroup) {
 	newUrls := wc.siteParser.Parse(urlData.Url)
 	log.Infof("Parsed url:%s result:%s", urlData, newUrls)
-	q := wc.jobsQueue.Acquire()
-	defer wc.jobsQueue.Release()
-	if q == nil {
+	urls, ok := wc.urlsAccessor.Acquire()
+	if !ok {
 		return
 	}
+	defer wc.urlsAccessor.Release()
 	for _, newUrl := range newUrls {
-		allUrls := q.(*queue.Queue).Metadata[allUrls].(set.Interface)
-		if !allUrls.Contains(newUrl) {
-			allUrls.Add(newUrl)
-			q.(*queue.Queue).Enqueue(UrlData{
+		if !urls.Contains(newUrl) {
+			urls.Add(newUrl)
+			urlCounter.Done()
+			wc.jobsQueue <- &UrlData{
 				Url:       newUrl,
 				SourceUrl: urlData.Url,
-			})
+			}
 		}
 	}
 }
 
 func (wc *WebCrawler) Stop() {
-	wc.jobsQueue.Done()
+	wc.urlsAccessor.Close()
 }

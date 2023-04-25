@@ -8,7 +8,7 @@ import (
 	"github.com/qulia/go-qulia/lib/set"
 )
 
-var db *set.SliceSet
+var db set.SetFlex[Todo, int64]
 
 func main() {
 	gRouter := mux.NewRouter().StrictSlash(true)
@@ -32,17 +32,12 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func errorHandler(f func(w http.ResponseWriter, r *http.Request) (error, int)) http.HandlerFunc {
+func errorHandler(f func(w http.ResponseWriter, r *http.Request) (int, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err, code := f(w, r)
+		code, err := f(w, r)
 		if err != nil {
 			log.Printf("could not process request %v", err.Error())
-			if code > 0 {
-				http.Error(w, err.Error(), code)
-			} else {
-				// Do not pass internal details to client
-				http.Error(w, "Error occurred", http.StatusInternalServerError)
-			}
+			http.Error(w, err.Error(), code)
 		}
 	}
 }

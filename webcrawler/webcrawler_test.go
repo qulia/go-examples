@@ -5,9 +5,7 @@ import (
 
 	"github.com/qulia/go-examples/webcrawler"
 	"github.com/qulia/go-examples/webcrawler/siteparser"
-	"github.com/qulia/go-qulia/lib"
-	"github.com/qulia/go-qulia/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/qulia/go-qulia/lib/set"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,29 +18,10 @@ func TestWebCrawlerBasic(t *testing.T) {
 	}
 	sp := siteparser.NewMockSiteParser(urlMap)
 
-	wc := webcrawler.NewWebCrawler(4, sp)
+	wc := webcrawler.NewWebCrawler(4, 4, sp)
+	foundUrls := wc.Visit("site1")
+	t.Logf("Found urls %v", foundUrls)
 
-	urls := make(chan webcrawler.UrlData, 1)
-	go wc.Visit("site1", urls)
-
-	expectedUrls := []interface{}{"site1", "site2", "site3", "site4", "site6"}
-	var foundUrls []interface{}
-	// Log urls as they arrive
-	for url := range urls {
-		if url.Url == "" {
-			log.Infof("exiting")
-			break
-		}
-		log.Infof("Url found: %v", url)
-		foundUrls = append(foundUrls, url.Url)
-
-		if len(foundUrls) == len(expectedUrls) {
-			log.Infof("Found all urls")
-			wc.Stop()
-			urls <- webcrawler.UrlData{}
-		}
-	}
-
-	log.Infof("Found urls %v", foundUrls)
-	assert.True(t, utils.SliceContains(foundUrls, expectedUrls, lib.HashKeyFunc))
+	expectedUrls := set.NewSet[string]().FromSlice([]string{"site1", "site2", "site3", "site4", "site6"})
+	assert.True(t, expectedUrls.IsSubsetOf(foundUrls) && expectedUrls.IsSupersetOf(foundUrls))
 }

@@ -1,28 +1,38 @@
 # github.com/davecgh/go-spew v1.1.1
+## explicit
 github.com/davecgh/go-spew/spew
 # github.com/gorilla/mux v1.8.0
+## explicit; go 1.12
 github.com/gorilla/mux
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
+## explicit
 github.com/pmezard/go-difflib/difflib
 # github.com/qulia/go-log v0.0.0-20200329160631-27094ffa4de9
+## explicit
 github.com/qulia/go-log/log
-# github.com/qulia/go-qulia v1.0.5-0.20200913054407-d6228d4b1cb1
-github.com/qulia/go-qulia/concurrency/access
+# github.com/qulia/go-qulia v1.1.1-0.20230425212211-d4609324f2ad
+## explicit; go 1.20
+github.com/qulia/go-qulia/concurrency/unique
 github.com/qulia/go-qulia/lib
-github.com/qulia/go-qulia/lib/hash
 github.com/qulia/go-qulia/lib/heap
 github.com/qulia/go-qulia/lib/queue
 github.com/qulia/go-qulia/lib/set
 github.com/qulia/go-qulia/lib/tree
-github.com/qulia/go-qulia/utils
-# github.com/sirupsen/logrus v1.6.0
+# github.com/sirupsen/logrus v1.9.0
+## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.6.1
+# github.com/stretchr/testify v1.7.0
+## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+# golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
+## explicit; go 1.20
+golang.org/x/exp/constraints
+# golang.org/x/sys v0.7.0
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
+golang.org/x/sys/windows
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+## explicit
 gopkg.in/yaml.v3

@@ -2,147 +2,94 @@ package set
 
 import (
 	"github.com/qulia/go-qulia/lib"
-	log "github.com/sirupsen/logrus"
 )
 
-type Interface interface {
+// Set with elements of any comparable type
+type Set[T comparable] interface {
 	// Add element to the set
-	Add(interface{})
+	Add(T)
 
-	//Remove element from the set
-	Remove(interface{})
+	// Remove element from the set
+	Remove(T)
 
 	// CopyTo another set
-	CopyTo(other Interface)
+	CopyTo(other Set[T])
 
 	// Returns the union set with other set
-	Union(other Interface) Interface
+	Union(other Set[T]) Set[T]
 
 	// Returns the intersection set with other set
-	Intersection(other Interface) Interface
+	Intersection(other Set[T]) Set[T]
 
 	// Is current set subset (contained in) of the provided set
-	IsSubsetOf(other Interface) bool
+	IsSubsetOf(other Set[T]) bool
 
 	// Is current set superset of the provided set
-	IsSupersetOf(other Interface) bool
+	IsSupersetOf(other Set[T]) bool
 
 	// Returns true if set contains the element, -1, false otherwise
-	Contains(interface{}) bool
+	Contains(T) bool
 
 	// Size of the set
-	Size() int
+	Len() int
 
 	// Creates a slice from the set
-	ToSlice() []interface{}
+	ToSlice() []T
 
 	// Initializes the set from slice
-	FromSlice([]interface{})
+	FromSlice([]T) Set[T]
+
+	// Create a slice of keys
+	Keys() []T
 }
 
-// Set is implementation of set.Interface
-// Comparisons to match elements are based on KeyFunc
-type Set struct {
-	entries map[string]interface{}
-	keyFunc lib.KeyFunc
+// Set with elements of any type that implements lib.Keyable with Key() method that returns
+// K which is comparable
+type SetFlex[T lib.Keyable[K], K comparable] interface {
+	// Add element to the set
+	Add(T)
+
+	// Remove element from the set
+	Remove(T)
+
+	// CopyTo another set
+	CopyTo(other SetFlex[T, K])
+
+	// Returns the union set with other set
+	Union(other SetFlex[T, K]) SetFlex[T, K]
+
+	// Returns the intersection set with other set
+	Intersection(other SetFlex[T, K]) SetFlex[T, K]
+
+	// Is current set subset (contained in) of the provided set
+	IsSubsetOf(other SetFlex[T, K]) bool
+
+	// Is current set superset of the provided set
+	IsSupersetOf(other SetFlex[T, K]) bool
+
+	// Returns true if set contains the element, -1, false otherwise
+	Contains(T) bool
+
+	// Gets the element with key, call Contains first
+	GetWithKey(K) T
+
+	// Size of the set
+	Len() int
+
+	// Creates a slice from the set
+	ToSlice() []T
+
+	// Initializes the set from slice
+	FromSlice([]T) SetFlex[T, K]
+
+	// Create a slice of keys
+	Keys() []K
 }
 
-func (s *Set) FromSlice(input []interface{}) {
-	for _, elem := range input {
-		s.Add(elem)
-	}
+func NewSetFlex[T lib.Keyable[K], K comparable]() SetFlex[T, K] {
+	return newFlexImpl[T, K]()
 }
 
-func (s *Set) Union(other Interface) Interface {
-	unionSet := NewSet(s.keyFunc)
-	s.CopyTo(unionSet)
-	other.CopyTo(unionSet)
-
-	return unionSet
-}
-
-func (s *Set) Intersection(other Interface) Interface {
-	lenS := s.Size()
-	lenOther := other.Size()
-
-	var small *Set
-	var large *Set
-	if lenS < lenOther {
-		small = s
-		large = other.(*Set)
-	} else {
-		small = other.(*Set)
-		large = s
-	}
-
-	intersectionSet := NewSet(s.keyFunc)
-	for key, elem := range small.entries {
-		if keyOther, ok := large.contains(elem); ok {
-			if key != keyOther {
-				log.Warnf("keys do not match for %v %s %s", elem, key, keyOther)
-			}
-			intersectionSet.Add(elem)
-		}
-	}
-
-	return intersectionSet
-}
-
-func (s *Set) IsSubsetOf(other Interface) bool {
-	return s.Intersection(other).Size() == s.Size()
-}
-
-func (s *Set) IsSupersetOf(other Interface) bool {
-	return other.IsSubsetOf(s)
-}
-
-func (s *Set) Contains(elem interface{}) bool {
-	_, ok := s.contains(elem)
-	return ok
-}
-
-func (s *Set) contains(elem interface{}) (string, bool) {
-	key := s.keyFunc(elem)
-	_, ok := s.entries[key]
-	return key, ok
-}
-
-func (s *Set) ToSlice() []interface{} {
-	var res []interface{}
-	for _, elem := range s.entries {
-		res = append(res, elem)
-	}
-
-	return res
-}
-
-func NewSet(keyFunc lib.KeyFunc) *Set {
-	set := Set{
-		entries: make(map[string]interface{}),
-		keyFunc: keyFunc,
-	}
-
-	return &set
-}
-
-func (s *Set) Size() int {
-	return len(s.entries)
-}
-
-func (s *Set) Add(elem interface{}) {
-	if key, ok := s.contains(elem); !ok {
-		s.entries[key] = elem
-	}
-}
-
-func (s *Set) Remove(elem interface{}) {
-	if key, ok := s.contains(elem); ok {
-		delete(s.entries, key)
-	}
-}
-
-func (s *Set) CopyTo(other Interface) {
-	for _, elem := range s.entries {
-		other.Add(elem)
-	}
+func NewSet[T comparable]() Set[T] {
+	return newSetImpl[T]()
 }

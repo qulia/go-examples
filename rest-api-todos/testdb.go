@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/qulia/go-qulia/lib/set"
 )
 
 func init() {
-	db = set.NewSliceSet(func(it interface{}) string {
-		return fmt.Sprintf("%d", it.(Todo).Id)
-	})
+	db = set.NewSetFlex[Todo, int64]()
 
 	db.Add(Todo{
 		Name:        "todo",
