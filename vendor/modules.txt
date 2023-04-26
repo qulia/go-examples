@@ -12,6 +12,9 @@ github.com/pmezard/go-difflib/difflib
 github.com/qulia/go-log/log
 # github.com/qulia/go-qulia v1.1.1-0.20230425212211-d4609324f2ad
 ## explicit; go 1.20
+github.com/qulia/go-qulia/algo/ratelimiter
+github.com/qulia/go-qulia/algo/ratelimiter/leakybucket
+github.com/qulia/go-qulia/algo/ratelimiter/tokenbucket
 github.com/qulia/go-qulia/concurrency/unique
 github.com/qulia/go-qulia/lib
 github.com/qulia/go-qulia/lib/heap
