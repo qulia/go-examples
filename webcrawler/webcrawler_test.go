@@ -2,6 +2,7 @@ package webcrawler_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/qulia/go-examples/webcrawler"
 	"github.com/qulia/go-examples/webcrawler/siteparser"
@@ -42,15 +43,15 @@ func TestWebCrawlerBasic(t *testing.T) {
 		"http://site1.com/page5",
 	})
 
-	sp := siteparser.NewMockSiteParser(urlMap)
+	sp := siteparser.NewMockSiteParser(urlMap, nil)
 
-	wc := webcrawler.NewWebCrawler(4, expectedUrls.Len(), sp)
+	wc := webcrawler.NewWebCrawler(4, expectedUrls.Len(), time.Minute, time.Second*2, sp)
 	foundUrls, err := wc.Visit("http://site1.com/page1")
-	assert.Nil(t, err)
+	assert.Equal(t, err.Error(), "")
 	t.Logf("Found urls %v", foundUrls)
 	foundUrlsSet := set.NewSet[string]()
 	for _, u := range foundUrls.ToSlice() {
-		foundUrlsSet.Add(u.String())
+		foundUrlsSet.Add(u)
 	}
 	assert.True(t, expectedUrls.IsSubsetOf(foundUrlsSet) && expectedUrls.IsSupersetOf(foundUrlsSet))
 
