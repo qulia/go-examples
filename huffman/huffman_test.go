@@ -1,6 +1,7 @@
 package huffman
 
 import (
+	"fmt"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -14,6 +15,6 @@ func TestHuffmanEncoding(t *testing.T) {
 
 func testRoundTrip(t *testing.T, input string) {
 	res, hTree := Encode(input)
-	t.Logf("Hufman code: %s", res)
+	fmt.Printf("Hufman code: %s", res)
 	assert.Equal(t, input, Decode(res, hTree))
 }

@@ -1,6 +1,7 @@
 package webcrawler_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func TestWebCrawlerBasic(t *testing.T) {
 	wc := webcrawler.NewWebCrawler(4, expectedUrls.Len(), time.Minute, time.Second*2, sp)
 	foundUrls, err := wc.Visit("http://site1.com/page1")
 	assert.Equal(t, err.Error(), "")
-	t.Logf("Found urls %v", foundUrls)
+	fmt.Printf("Found urls %v", foundUrls)
 	foundUrlsSet := set.NewSet[string]()
 	for _, u := range foundUrls.ToSlice() {
 		foundUrlsSet.Add(u)
