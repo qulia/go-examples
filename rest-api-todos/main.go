@@ -4,32 +4,25 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/qulia/go-examples/rest-api-todos/middleware"
 	"github.com/qulia/go-qulia/lib/set"
 )
 
 var db set.SetFlex[Todo, int64]
 
 func main() {
-	gRouter := mux.NewRouter().StrictSlash(true)
-	gRouter.HandleFunc("/todos", errorHandler(getAllTodos))
-	gRouter.HandleFunc("/todo", errorHandler(deleteTodo)).Methods("DELETE")
-	gRouter.HandleFunc("/todo", errorHandler(createTodo)).Methods("POST")
-	gRouter.HandleFunc("/todos/{id}", errorHandler(getTodo))
-	gRouter.Use(loggingMiddleware)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /todos", errorHandler(getAllTodos))
+	mux.HandleFunc("DELETE /todos", errorHandler(deleteTodo))
+	mux.HandleFunc("POST /todos", errorHandler(createTodo))
+	mux.HandleFunc("GET /todos/{id}", errorHandler(getTodo))
+	handler := middleware.Logger(mux)
+
 	s := &http.Server{
 		Addr:    ":3000",
-		Handler: gRouter,
+		Handler: handler,
 	}
 	log.Fatal(s.ListenAndServe())
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s:%s\n", r.RequestURI, r.Method)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		next.ServeHTTP(w, r)
-	})
 }
 
 func errorHandler(f func(w http.ResponseWriter, r *http.Request) (int, error)) http.HandlerFunc {

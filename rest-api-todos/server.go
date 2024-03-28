@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 /*
 curl localhost:3000/todos/1
 */
 func getTodo(writer http.ResponseWriter, request *http.Request) (int, error) {
-	if ids, ok := mux.Vars(request)["id"]; ok && len(ids) != 0 {
+	if ids := request.PathValue("id"); len(ids) != 0 {
 		id, err := strconv.Atoi(ids)
 		if err != nil {
 			return http.StatusInternalServerError, err
@@ -49,7 +47,7 @@ func getAllTodos(w http.ResponseWriter, _ *http.Request) (int, error) {
 	    --header "Content-type: application/json" \
 	    --request POST \
 	    --data '{"name":"todo","id":2,"title":"t2","description":"d2"}' \
-	    http://localhost:3000/todo
+	    http://localhost:3000/todos
 */
 func createTodo(w http.ResponseWriter, r *http.Request) (int, error) {
 	var td Todo
@@ -73,7 +71,7 @@ func createTodo(w http.ResponseWriter, r *http.Request) (int, error) {
 	    --header "Content-type: application/json" \
 	    --request DELETE \
 	    --data '{"name":"todo","id":2}' \
-	    http://localhost:3000/todo
+	    http://localhost:3000/todos
 */
 func deleteTodo(_ http.ResponseWriter, r *http.Request) (int, error) {
 	var td Todo
