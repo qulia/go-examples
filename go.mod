@@ -1,9 +1,8 @@
 module github.com/qulia/go-examples
 
-go 1.22.0
+go 1.22
 
 require (
-	github.com/gorilla/mux v1.8.1
 	github.com/qulia/go-log v0.0.0-20200329160631-27094ffa4de9
 	github.com/qulia/go-qulia v0.0.0-20240319185435-7676095ed4bd
 	github.com/sirupsen/logrus v1.9.3
